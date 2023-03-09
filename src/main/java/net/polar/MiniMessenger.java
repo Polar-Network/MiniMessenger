@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
@@ -33,11 +34,22 @@ public final class MiniMessenger {
                 tags.add(new MessengerTag(name, replacement));
             });
             for (MessengerTag tag : tags) {
-                resolver = resolver.resolver(Placeholder.parsed(tag.getName(), tag.getReplacement()));
+                resolver = resolver.resolver(Placeholder.parsed(tag.name, tag.replacement));
             }
             resolver = resolver.resolver(TagResolver.standard()); // Add standard resolver
             return MiniMessage.builder().tags(resolver.build()).build();
         }, ForkJoinPool.commonPool());
     }
 
+    public static @NotNull CompletableFuture<Void> appendTag(
+            @NotNull MongoDatabase tagsDatabase,
+            @NotNull String collectionName,
+            @NotNull MessengerTag tag
+    ) {
+        return CompletableFuture.runAsync(() -> {
+            MongoCollection<Document> collection = tagsDatabase.getCollection(collectionName);
+            Document document = new Document(Map.of("name", tag.name, "replacement", tag.replacement));
+            collection.insertOne(document);
+        }, ForkJoinPool.commonPool());
+    }
 }
