@@ -16,6 +16,17 @@ dependencies {
     compileOnly("org.mongodb:mongodb-driver-sync:4.9.0")
 }
 
+tasks {
+
+    compileJava {
+        options.encoding = "UTF-8"
+        sourceCompatibility = JavaVersion.VERSION_17.majorVersion
+        targetCompatibility = JavaVersion.VERSION_17.majorVersion
+    }
+
+}
+
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
